@@ -1,7 +1,21 @@
 const express = require('express');
 const path = require('path');
-const db = require('./config/connection');
-const routes = require('./routes');
+const mongoose = require('mongoose');
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@apollo/server/express4');
+const { typeDefs, resolvers } = require('./schemas');
+const { authMiddleware } = require('./auth');
+
+// Create an instance of Apollo Server
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ req }) => {
+    // Extract user information from the token
+    const user = authMiddleware({ req }).user;
+    return { user };
+  },
+});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -9,13 +23,25 @@ const PORT = process.env.PORT || 3001;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// if we're in production, serve client/build as static assets
+// Serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client')));
 }
 
-app.use(routes);
+// Apply Apollo Server middleware to the Express app
+server.start().then(() => {
+  app.use('/graphql', expressMiddleware(server));
 
-db.once('open', () => {
+  // Connect to MongoDB
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/book-search', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }).then(() => {
+    console.log('MongoDB connected');
+  }).catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
+
+  // Start the Express server
   app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
 });
