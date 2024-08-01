@@ -1,57 +1,91 @@
-// route to get logged in user's info (needs the token)
-export const getMe = (token) => {
-  return fetch('/api/users/me', {
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-  });
-};
+// utils/API.js
 
-export const createUser = (userData) => {
-  return fetch('/api/users', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-};
+import { gql } from '@apollo/client';
 
-export const loginUser = (userData) => {
-  return fetch('/api/users/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-};
+export const GET_ME = gql`
+  query me {
+    me {
+      _id
+      username
+      email
+      bookCount
+      savedBooks {
+        bookId
+        authors
+        image
+        description
+        title
+        link
+      }
+    }
+  }
+`;
 
-// save book data for a logged in user
-export const saveBook = (bookData, token) => {
-  return fetch('/api/users', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(bookData),
-  });
-};
+export const CREATE_USER = gql`
+  mutation createUser($username: String!, $email: String!, $password: String!) {
+    createUser(username: $username, email: $email, password: $password) {
+      token
+      user {
+        _id
+        username
+        email
+      }
+    }
+  }
+`;
 
-// remove saved book data for a logged in user
-export const deleteBook = (bookId, token) => {
-  return fetch(`/api/users/books/${bookId}`, {
-    method: 'DELETE',
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
-};
+export const LOGIN_USER = gql`
+  mutation login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      user {
+        _id
+        username
+        email
+      }
+    }
+  }
+`;
 
-// make a search to google books api
-// https://www.googleapis.com/books/v1/volumes?q=harry+potter
+export const SAVE_BOOK = gql`
+  mutation saveBook($bookData: BookInput!) {
+    saveBook(bookData: $bookData) {
+      _id
+      username
+      email
+      bookCount
+      savedBooks {
+        bookId
+        authors
+        image
+        description
+        title
+        link
+      }
+    }
+  }
+`;
+
+export const REMOVE_BOOK = gql`
+  mutation removeBook($bookId: ID!) {
+    removeBook(bookId: $bookId) {
+      _id
+      username
+      email
+      bookCount
+      savedBooks {
+        bookId
+        authors
+        image
+        description
+        title
+        link
+      }
+    }
+  }
+`;
+
+// function to make a search to Google Books API
 export const searchGoogleBooks = (query) => {
   return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
 };
