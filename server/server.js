@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const { typeDefs, resolvers } = require('./schemas');
-const { authMiddleware } = require('./auth');
+const { authMiddleware } = require('./utils/auth');
 
 // Create an instance of Apollo Server
 const server = new ApolloServer({
@@ -31,7 +31,7 @@ server.start().then(() => {
   app.use('/graphql', expressMiddleware(server));
 
   // Connect to MongoDB
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/book-search', {
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/bookworm', {
   }).then(() => {
     console.log('MongoDB connected');
   }).catch((err) => {
