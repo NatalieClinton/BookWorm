@@ -23,10 +23,8 @@ const PORT = process.env.PORT || 3001;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static assets if in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client')));
-}
+// Serve static assets
+app.use(express.static(path.join(__dirname, '../client')));
 
 // Apply Apollo Server middleware to the Express app
 server.start().then(() => {
@@ -34,8 +32,6 @@ server.start().then(() => {
 
   // Connect to MongoDB
   mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/book-search', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
   }).then(() => {
     console.log('MongoDB connected');
   }).catch((err) => {
