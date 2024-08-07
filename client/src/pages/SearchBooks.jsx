@@ -8,7 +8,7 @@ import {
   Row
 } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
-import { SAVE_BOOK } from '../utils/API';
+import { SAVE_BOOK } from '../utils/mutations';
 import Auth from '../utils/auth';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
@@ -64,8 +64,9 @@ const SearchBooks = () => {
     }
 
     try {
+      console.log(bookToSave);
       const { data } = await saveBook({
-        variables: { bookData: { ...bookToSave } },
+        variables: { ...bookToSave },
       });
 
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);

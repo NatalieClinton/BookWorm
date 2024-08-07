@@ -1,6 +1,5 @@
 const { User } = require('../models');
-const { signToken } = require('../utils/auth');
-const { AuthenticationError } = require('@apollo/server');
+const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
   Query: {
@@ -9,7 +8,7 @@ const resolvers = {
       if (context.user) {
         return User.findById(context.user._id).populate('savedBooks');
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw AuthenticationError;
     },
   },
   Mutation: {
@@ -18,13 +17,13 @@ const resolvers = {
       const user = await User.findOne({ email });
       
       if (!user) {
-        throw new AuthenticationError('Incorrect credentials');
+        throw AuthenticationError;
       }
       
       const correctPw = await user.isCorrectPassword(password);
       
       if (!correctPw) {
-        throw new AuthenticationError('Incorrect credentials');
+        throw AuthenticationError;
       }
       
       const token = signToken(user);
@@ -50,7 +49,7 @@ const resolvers = {
         ).populate('savedBooks');
         return updatedUser;
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw AuthenticationError;
     },
 
     // Remove a book from the user's saved books
@@ -65,7 +64,7 @@ const resolvers = {
         ).populate('savedBooks');
         return updatedUser;
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw AuthenticationError;
     },
   },
 };

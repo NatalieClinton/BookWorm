@@ -1,38 +1,37 @@
+const { GraphQLError } = require('graphql');
 const jwt = require('jsonwebtoken');
 
-const secret = process.env.JWT_SECRET || 'verydiscreet';
+const secret = 'mysecretssshhhhhhh';
 const expiration = '2h';
 
-// Middleware to authenticate requests
-const authMiddleware = ({ req }) => {
-  // Get token from request headers
-  const token = req.headers.authorization || '';
-
-  if (token.startsWith('Bearer ')) {
-    try {
-      // Remove 'Bearer ' from the token
-      const tokenValue = token.slice(7, token.length).trim();
-      const { data } = jwt.verify(tokenValue, secret, { maxAge: expiration });
-
-      // Return user data to be used in GraphQL context
-      return { user: data };
-    } catch (err) {
-      console.error('Invalid token', err);
-      return { user: null };
-    }
-  }
-
-  // If there's no token or it's not valid, return null user
-  return { user: null };
-};
-
-// Function to sign a token
-const signToken = ({ username, email, _id }) => {
-  const payload = { username, email, _id };
-  return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
-};
-
 module.exports = {
-  authMiddleware,
-  signToken,
+  AuthenticationError: new GraphQLError('Could not authenticate user.', {
+    extensions: {
+      code: 'UNAUTHENTICATED',
+    },
+  }),
+  authMiddleware: function ({ req }) {
+    let token = req.body.token || req.query.token || req.headers.authorization;
+
+    if (req.headers.authorization) {
+      token = token.split(' ').pop().trim();
+    }
+
+    if (!token) {
+      return req;
+    }
+
+    try {
+      const { data } = jwt.verify(token, secret, { maxAge: expiration });
+      req.user = data;
+    } catch {
+      console.log('Invalid token');
+    }
+
+    return req;
+  },
+  signToken: function ({ email, username, _id }) {
+    const payload = { email, username, _id };
+    return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
+  },
 };
